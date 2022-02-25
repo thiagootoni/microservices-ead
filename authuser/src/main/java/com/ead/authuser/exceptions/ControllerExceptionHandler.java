@@ -1,8 +1,8 @@
-package com.ead.authuser.controllers.exceptions;
+package com.ead.authuser.exceptions;
 
-import com.ead.authuser.services.exceptions.DataBaseException;
-import com.ead.authuser.services.exceptions.ElementNotFoundException;
-import com.ead.authuser.services.exceptions.IdentityException;
+import com.ead.authuser.exceptions.models.DataBaseException;
+import com.ead.authuser.exceptions.models.ElementNotFoundException;
+import com.ead.authuser.exceptions.models.IdentityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

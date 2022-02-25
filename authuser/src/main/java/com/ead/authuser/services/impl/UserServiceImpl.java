@@ -1,13 +1,17 @@
 package com.ead.authuser.services.impl;
 
 import com.ead.authuser.controllers.UserController;
+import com.ead.authuser.dtos.PromoteInstructorDto;
 import com.ead.authuser.dtos.UserDto;
+import com.ead.authuser.enuns.UserType;
 import com.ead.authuser.models.UserModel;
 import com.ead.authuser.repositories.UserRepository;
 import com.ead.authuser.services.UserService;
-import com.ead.authuser.services.exceptions.IdentityException;
-import com.ead.authuser.services.exceptions.DataBaseException;
-import com.ead.authuser.services.exceptions.ElementNotFoundException;
+import com.ead.authuser.exceptions.models.IdentityException;
+import com.ead.authuser.exceptions.models.DataBaseException;
+import com.ead.authuser.exceptions.models.ElementNotFoundException;
+import com.ead.authuser.specifications.SpecificationTemplate;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,9 +26,11 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Objects.isNull;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+@Log4j2
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -33,7 +39,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserModel save(UserModel user) {
-        user.setLatsUpdateTime(LocalDateTime.now(ZoneId.of("UTC")));
         return this.repository.save(user);
     }
 
@@ -43,8 +48,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserModel> findAll(Specification<UserModel> spec, Pageable pageable) {
-        Page<UserModel> page = this.repository.findAll(spec, pageable);
+    public Page<UserModel> findAll(UUID courseId, Specification<UserModel> spec, Pageable pageable) {
+
+        Page<UserModel> page;
+        if (isNull(courseId)){
+            page = this.repository.findAll(spec, pageable);
+        }else{
+            log.info("get users by courseId: {}", courseId);
+            page = this.repository.findAll(SpecificationTemplate.userCourseId(courseId).and(spec), pageable);
+        }
         page.forEach(u -> addHATOAS(u));
         return page;
     }
@@ -52,6 +64,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserModel findOne(UUID id) {
         return this.repository.findById(id)
+                .orElseThrow(() -> new ElementNotFoundException("User not found"));
+    }
+
+    @Override
+    public UserModel findOneFetchCourses(UUID id) {
+        return this.repository.findByIdAndFetchCourses(id)
                 .orElseThrow(() -> new ElementNotFoundException("User not found"));
     }
 
@@ -112,6 +130,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByEmail(String email) {
         return this.repository.existsByEmail(email);
+    }
+
+    @Override
+    public UserModel promoteToInstructor(PromoteInstructorDto promoteInstructorDto) {
+        UserModel user = findOne(promoteInstructorDto.getUserId());
+        user.setUserType(UserType.INSTRUCTOR);
+        return repository.save(user);
     }
 
     private void addHATOAS(UserModel user) {

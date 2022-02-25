@@ -1,4 +1,4 @@
-package com.ead.authuser.controllers.exceptions;
+package com.ead.authuser.exceptions;
 
 import lombok.Data;
 

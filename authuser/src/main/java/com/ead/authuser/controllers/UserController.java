@@ -5,6 +5,7 @@ import com.ead.authuser.models.UserModel;
 import com.ead.authuser.services.UserService;
 import com.ead.authuser.specifications.SpecificationTemplate;
 import com.fasterxml.jackson.annotation.JsonView;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Log4j2
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping(value = "/users")
@@ -27,9 +29,12 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Page<UserModel>> getAllUser(
             SpecificationTemplate.UserSpec spec,
-            @PageableDefault(size = 10, page = 0, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(size = 10, page = 0, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+            @RequestParam(required = false) UUID courseId){
 
-        Page<UserModel> page = service.findAll(spec, pageable);
+        log.info("Started method get all users");
+        Page<UserModel> page = service.findAll(courseId, spec, pageable);
+        log.info("finished method get all users");
         return ResponseEntity.ok().body(page);
     }
 

@@ -1,4 +1,4 @@
-package com.ead.authuser.services.exceptions;
+package com.ead.authuser.exceptions.models;
 
 public class ElementNotFoundException extends RuntimeException	{
 

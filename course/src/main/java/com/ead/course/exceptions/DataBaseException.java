@@ -1,4 +1,4 @@
-package com.ead.authuser.services.exceptions;
+package com.ead.course.exceptions;
 
 public class DataBaseException extends RuntimeException	{
 
