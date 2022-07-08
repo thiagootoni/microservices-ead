@@ -1,0 +1,42 @@
+server:
+  port: 8087
+  servlet:
+    context-path: '/ead-authuser/'
+
+spring:
+  application:
+    name: ead-notification-domain-services
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ead-notification
+    username: postgres
+    password: adminpg
+  jpa:
+    hibernate:
+      ddl-auto: update
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      jdbc:
+        lob.non-contextual-creation: true
+    properties:
+      hibernate:
+        show_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: 'http://localhost:8761/eureka'
+  instance:
+    hostname: localhost
+
+ead:
+  broker:
+    exchange:
+      notificatioCommandExchange: ead.notificationcommand
+    queue:
+      notificationCommandQueue: ead.notificationcommand.ms.notification
+    key:
+      notificationCommandKey: ms.notification

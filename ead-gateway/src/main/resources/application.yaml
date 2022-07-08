@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ead-api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: authuser-service
+          uri: lb://ead-authuser-domain-services
+          predicates:
+            - Path=/ead-authuser/**
+        - id: course-service
+          uri: lb://ead-course-domain-services
+          predicates:
+            - Path=/ead-course/**
+        - id: notification-service
+          uri: lb://ead-notification-domain-services
+          predicates:
+            - Path=/ead-notification/**
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: 'http://localhost:8761/eureka'
+  instance:
+    hostname: localhost
+

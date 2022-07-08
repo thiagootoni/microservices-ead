@@ -46,7 +46,7 @@ public class UserController {
 
     @DeleteMapping(value = {"/{userId}"})
     public ResponseEntity<UserModel> deleteOne(@PathVariable(value = "userId") UUID userId) {
-        this.service.deleteOne(userId);
+        this.service.deleteAndSendEvent(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -54,7 +54,7 @@ public class UserController {
     public ResponseEntity<UserModel> updateUser(@PathVariable(value = "userId") UUID userId,
                                              @JsonView(UserDto.UserView.UserPut.class) @RequestBody UserDto userDto) {
 
-        UserModel user = this.service.updateOne(userId, userDto);
+        UserModel user = this.service.updateAndSendEvent(userId, userDto);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(user);
     }
 

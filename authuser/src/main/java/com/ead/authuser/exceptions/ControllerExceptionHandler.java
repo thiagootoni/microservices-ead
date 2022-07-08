@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 
@@ -29,8 +30,23 @@ public class ControllerExceptionHandler {
         return ResponseEntity.status(status).body(error);
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<StandardError> elementNotFoundExceptionHandler(EntityNotFoundException e, HttpServletRequest request){
+
+        StandardError error = new StandardError();
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        error.setError("Element not found");
+        error.setMessage("Resource Not found");
+        error.setPath(request.getRequestURI());
+        error.setStatus(status.value());
+        error.setTimestamp(Instant.now());
+
+        return ResponseEntity.status(status).body(error);
+    }
+
     @ExceptionHandler(DataBaseException.class)
-    public ResponseEntity<StandardError> dataBaseExceptionHandler(ElementNotFoundException e, HttpServletRequest request){
+    public ResponseEntity<StandardError> dataBaseExceptionHandler(DataBaseException e, HttpServletRequest request){
 
         StandardError error = new StandardError();
         HttpStatus status = HttpStatus.BAD_REQUEST;

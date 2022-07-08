@@ -3,13 +3,11 @@ package com.ead.authuser.services;
 import com.ead.authuser.dtos.PromoteInstructorDto;
 import com.ead.authuser.dtos.UserDto;
 import com.ead.authuser.models.UserModel;
-import com.ead.authuser.specifications.SpecificationTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
@@ -23,9 +21,11 @@ public interface UserService {
 
     UserModel save(UserModel user);
 
-    void deleteOne(UUID userId);
+    UserModel saveAndSendEvent(UserModel user);
 
-    UserModel updateOne(UUID userId, UserDto userDto);
+    void deleteAndSendEvent(UUID userId);
+
+    UserModel updateAndSendEvent(UUID userId, UserDto userDto);
 
     UserModel updatePassword(UUID userId, UserDto userDto);
 

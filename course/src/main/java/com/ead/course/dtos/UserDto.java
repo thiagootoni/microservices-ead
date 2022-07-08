@@ -2,6 +2,7 @@ package com.ead.course.dtos;
 
 import com.ead.course.enuns.UserStatus;
 import com.ead.course.enuns.UserType;
+import com.ead.course.models.UserModel;
 import lombok.Data;
 
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 public class UserDto {
 
     private UUID id;
-    private String username;
+    private String userName;
     private String email;
     private String fullName;
     private UserStatus userStatus;
@@ -19,4 +20,5 @@ public class UserDto {
     private String phoneNumber;
     private String cpf;
     private String imageUrl;
+
 }

@@ -3,15 +3,18 @@ package com.ead.authuser.services.impl;
 import com.ead.authuser.controllers.UserController;
 import com.ead.authuser.dtos.PromoteInstructorDto;
 import com.ead.authuser.dtos.UserDto;
+import com.ead.authuser.dtos.UserEventDto;
 import com.ead.authuser.enuns.UserType;
-import com.ead.authuser.models.UserModel;
-import com.ead.authuser.repositories.UserRepository;
-import com.ead.authuser.services.UserService;
-import com.ead.authuser.exceptions.models.IdentityException;
 import com.ead.authuser.exceptions.models.DataBaseException;
 import com.ead.authuser.exceptions.models.ElementNotFoundException;
+import com.ead.authuser.exceptions.models.IdentityException;
+import com.ead.authuser.models.UserModel;
+import com.ead.authuser.publishers.UserEventPublisher;
+import com.ead.authuser.repositories.UserRepository;
+import com.ead.authuser.services.UserService;
 import com.ead.authuser.specifications.SpecificationTemplate;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -19,13 +22,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import static com.ead.authuser.enuns.ActionType.*;
 import static java.util.Objects.isNull;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -37,9 +39,21 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository repository;
 
+    @Autowired
+    UserEventPublisher userEventPublisher;
+
     @Override
     public UserModel save(UserModel user) {
         return this.repository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public UserModel saveAndSendEvent(UserModel user) {
+        this.save(user);
+        UserEventDto userEventDto = new UserEventDto(user);
+        userEventPublisher.publishUserEvent(userEventDto, CREATE);
+        return user;
     }
 
     @Override
@@ -51,9 +65,9 @@ public class UserServiceImpl implements UserService {
     public Page<UserModel> findAll(UUID courseId, Specification<UserModel> spec, Pageable pageable) {
 
         Page<UserModel> page;
-        if (isNull(courseId)){
+        if (isNull(courseId)) {
             page = this.repository.findAll(spec, pageable);
-        }else{
+        } else {
             log.info("get users by courseId: {}", courseId);
             page = this.repository.findAll(SpecificationTemplate.userCourseId(courseId).and(spec), pageable);
         }
@@ -74,7 +88,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteOne(UUID userId) {
+    public void deleteAndSendEvent(UUID userId) {
         try {
             this.repository.deleteById(userId);
         } catch (EmptyResultDataAccessException e) {
@@ -82,13 +96,22 @@ public class UserServiceImpl implements UserService {
         } catch (DataIntegrityViolationException e) {
             throw new DataBaseException("Data integrity violated when trying to delete.");
         }
+
+        var userEventDto = new UserEventDto().builder()
+                .userId(userId)
+                .build();
+
+        this.userEventPublisher.publishUserEvent(userEventDto, DELETE);
     }
 
     @Override
-    public UserModel updateOne(UUID userId, UserDto userDto) {
+    @Transactional
+    public UserModel updateAndSendEvent(UUID userId, UserDto userDto) {
         UserModel user = this.findOne(userId);
         mapIfPresent(userDto, user);
-        return this.save(user);
+        this.save(user);
+        this.userEventPublisher.publishUserEvent(new UserEventDto(user), UPDATE);
+        return user;
     }
 
     private void mapIfPresent(UserDto userDto, UserModel user) {
@@ -119,7 +142,7 @@ public class UserServiceImpl implements UserService {
     public UserModel updateAvatar(UUID userId, UserDto userDto) {
         UserModel user = this.findOne(userId);
         user.setImageUrl(userDto.getImageUrl());
-        return this.save(user);
+        return this.saveAndSendEvent(user);
     }
 
     @Override
@@ -133,10 +156,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserModel promoteToInstructor(PromoteInstructorDto promoteInstructorDto) {
         UserModel user = findOne(promoteInstructorDto.getUserId());
         user.setUserType(UserType.INSTRUCTOR);
-        return repository.save(user);
+        return this.saveAndSendEvent(user);
     }
 
     private void addHATOAS(UserModel user) {

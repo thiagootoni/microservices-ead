@@ -1,7 +1,11 @@
 server:
   port: 8082
+  servlet:
+    context-path: '/ead-course/'
 
 spring:
+  application:
+    name: ead-course-domain-services
   datasource:
     url: jdbc:postgresql://localhost:5432/ead-course
     username: postgres
@@ -16,8 +20,28 @@ spring:
       hibernate:
         show_sql: true
         hibernate.format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: 'http://localhost:8761/eureka'
+  instance:
+    hostname: localhost
 
 ead:
   api:
     url:
-      authuser: 'http://localhost:8087'
+      authuser: 'http://ead-authuser-domain-services/ead-authuser'
+  broker:
+    exchange:
+      userEvent: ead.userevent
+      notificationCommandExchange: ead.notificationcommand
+    queue:
+      userEvent: ead.userevent.ms.course
+    key:
+      notificationCommandKey: ms.notification

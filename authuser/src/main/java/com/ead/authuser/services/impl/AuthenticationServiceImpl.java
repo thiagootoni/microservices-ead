@@ -11,9 +11,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -22,10 +19,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserModel singUp(UserDto newUser) {
-
         checkForExistingSameCredentials(newUser);
         var user = mapToUserModel(newUser);
-        return userService.save(user);
+        return userService.saveAndSendEvent(user);
     }
 
     private void checkForExistingSameCredentials(UserDto newUser) {
@@ -40,7 +36,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserModel user = new ModelMapper().map(newUser, UserModel.class);
         user.setUserStatus(UserStatus.ACTIVE);
         user.setUserType(UserType.STUDENT);
-        user.setCreationDate(LocalDateTime.now(ZoneId.of("UTC")));
         return user;
     }
 }

@@ -1,10 +1,10 @@
 package com.ead.course.controllers;
 
-import com.ead.course.clients.AuthUserClient;
 import com.ead.course.dtos.SubscriptionDto;
 import com.ead.course.dtos.UserDto;
 import com.ead.course.services.CourseService;
-import com.ead.course.services.CourseUserService;
+import com.ead.course.services.UserService;
+import com.ead.course.specifications.SpecificationTemplate;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,29 +21,27 @@ import java.util.UUID;
 @Log4j2
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-public class CourseUserController {
-
-    @Autowired
-    AuthUserClient authUserClient;
+public class UserController {
 
     @Autowired
     CourseService courseService;
 
     @Autowired
-    CourseUserService courseUserService;
+    UserService userService;
 
 
     @GetMapping("/courses/{courseId}/users")
-    public ResponseEntity<Page<UserDto>> getAllUsersByCourse(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+    public ResponseEntity<Page<UserDto>> getAllUsersByCourse(SpecificationTemplate.UserSpec spec,
+                                                             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
                                                              @PathVariable(value = "courseId") UUID courseId){
-        return ResponseEntity.status(HttpStatus.OK).body(authUserClient.getAllUsersByCourse(courseId, pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsersIntoCourse(courseId, spec, pageable));
     }
 
     @PostMapping("/courses/{courseId}/users/subscription")
     public  ResponseEntity<Object> saveSubscriptionUserInCourse(@PathVariable(value = "courseId") UUID courseId,
                                                                 @RequestBody @Valid SubscriptionDto subscriptionDto){
 
-        courseUserService.subscriptionIntoCourse(courseId, subscriptionDto);
+        userService.subscriptionIntoCourse(courseId, subscriptionDto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
     }

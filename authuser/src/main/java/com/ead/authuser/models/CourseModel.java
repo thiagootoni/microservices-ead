@@ -1,6 +1,7 @@
 package com.ead.authuser.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
